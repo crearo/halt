@@ -12,10 +12,10 @@ class PhoneLockBroadcastReceiver : BroadcastReceiver() {
         Timber.d("PhoneLockBR %s", intent.toString())
 
         if (intent?.action.equals(Intent.ACTION_USER_PRESENT)) {
-//            val launchIntent = Intent(context, MainActivity::class.java)
-//            launchIntent.addFlags(FLAG_ACTIVITY_NEW_TASK)
-//            context?.startActivity(launchIntent)
-//            Timber.d("Should've opened our activity")
+            val launchIntent = Intent(context, MainActivity::class.java)
+            launchIntent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+            context?.startActivity(launchIntent)
+            Timber.d("Should've opened our activity")
         }
     }
 }
