@@ -3,13 +3,15 @@ package com.crearo.halt
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.*
+import android.content.IntentFilter
 import android.os.IBinder
-import android.util.Log
 import androidx.core.content.ContextCompat
 
 class AppForegroundService : Service() {
 
     private val CHANNEL_ID = "AppForegroundService"
+    val phoneLockReceiver: PhoneLockBroadcastReceiver = PhoneLockBroadcastReceiver()
 
     companion object {
         fun startService(context: Context) {
@@ -44,7 +46,24 @@ class AppForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d("AppForeground", "onCreate()")
+        registerReceivers()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceivers()
+    }
+
+    private fun registerReceivers() {
+        val phoneLockIntentFilter = IntentFilter()
+        phoneLockIntentFilter.addAction(ACTION_USER_PRESENT)
+        phoneLockIntentFilter.addAction(ACTION_SCREEN_ON)
+        phoneLockIntentFilter.addAction(ACTION_SCREEN_OFF)
+        registerReceiver(phoneLockReceiver, phoneLockIntentFilter)
+    }
+
+    private fun unregisterReceivers() {
+        unregisterReceiver(phoneLockReceiver)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
