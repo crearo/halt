@@ -29,6 +29,8 @@ This is actually the most important bit. Once I can query such information easil
 Every unlock has to have a corresponding lock. The gap between these two is the phone usage time 
 for that period. Fun, fun. This has edge cases for which I'll have to write good test cases. 
 
+UnlockStat: id, unlock_time, lock_time, duration
+
 #### Cases
 
 - Identifying sleep / wake up times
