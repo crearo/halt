@@ -1,9 +1,11 @@
 package com.crearo.halt.data
 
 import io.reactivex.Completable
+import io.reactivex.Flowable
 import java.time.Instant
+import javax.inject.Inject
 
-class UnlockStatRepository(private val unlockStatDao: UnlockStatDao) {
+class UnlockStatRepository @Inject constructor(private val unlockStatDao: UnlockStatDao) {
 
     /**
      * todo check:
@@ -15,7 +17,7 @@ class UnlockStatRepository(private val unlockStatDao: UnlockStatDao) {
     }
 
     /**
-     * todo I wanna know what happens if there are elements before. Does that get propogated through an error from Single->Completable?
+     * todo I wanna know what happens if there are elements before. Does that get propagated through an error from Single->Completable?
      * That'd be awesome.
      **/
     fun addNewLock(lockInstant: Instant): Completable {
@@ -25,5 +27,9 @@ class UnlockStatRepository(private val unlockStatDao: UnlockStatDao) {
                 unlockStat.lockTime = lockInstant
                 unlockStatDao.updateCorrespondingLock(unlockStat)
             }
+    }
+
+    fun getUnlockStats(): Flowable<List<UnlockStat>> {
+        return unlockStatDao.getUnlockStats()
     }
 }
