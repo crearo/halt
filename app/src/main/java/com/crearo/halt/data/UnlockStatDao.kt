@@ -15,9 +15,7 @@ import io.reactivex.Completable
  *      I could get this a little better. First unlock is the first usage after 3am, given that I
  *      don't check my phone for 2-3 hours before that. It's still an interesting problem to solve.
  *      Mostly for the edge cases. I should just write it down.)
- * - get usagestats in a specific time period (this can later be converted to total unlock count /
- *       duration as required)
- * */
+ **/
 @Dao
 interface UnlockStatDao {
 
@@ -37,7 +35,8 @@ interface UnlockStatDao {
     @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time LIMIT 1")
     fun getLastUnlock()
 
-    //    @Query("SELECT * FROM unlock_stats_table todo")
-    //    fun getUnlockStats(startTime: Long, endTime: Long)
+    /*** todo ensure startTime < endTime*/
+    @Query("SELECT * FROM unlock_stats_table WHERE lock_time >= :startTime AND unlock_time <= :endTime")
+    fun getUnlockStats(startTime: Long, endTime: Long)
 
 }

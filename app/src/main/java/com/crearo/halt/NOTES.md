@@ -31,6 +31,9 @@ for that period. Fun, fun. This has edge cases for which I'll have to write good
 
 UnlockStat: id, unlock_time, lock_time, duration
 
+Also this table is going to become huge over time, and I'll need to find a way to limit how big it 
+gets. Maybe compress results from a month ago. 
+
 #### Cases
 
 - Identifying sleep / wake up times
