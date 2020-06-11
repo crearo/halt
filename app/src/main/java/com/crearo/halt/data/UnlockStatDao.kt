@@ -2,6 +2,7 @@ package com.crearo.halt.data
 
 import androidx.room.*
 import io.reactivex.Completable
+import io.reactivex.Single
 
 /**
  * The assumption here is every unlock has a corresponding lock. The time between these two events
@@ -33,10 +34,10 @@ interface UnlockStatDao {
     fun deleteAll(): Completable
 
     @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time LIMIT 1")
-    fun getLastUnlock()
+    fun getLastUnlock(): Single<UnlockStat>
 
     /*** todo ensure startTime < endTime*/
     @Query("SELECT * FROM unlock_stats_table WHERE lock_time >= :startTime AND unlock_time <= :endTime")
-    fun getUnlockStats(startTime: Long, endTime: Long)
+    fun getUnlockStats(startTime: Long, endTime: Long): Single<List<UnlockStat>>
 
 }
