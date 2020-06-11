@@ -17,9 +17,6 @@ data class UnlockStat(
     @ColumnInfo(name = "lock_time") var lockTime: Instant? = null
 
 ) {
-    constructor(unlockTime: Instant, lockTime: Instant? = null) : this(
-        0,
-        unlockTime,
-        lockTime
-    )
+    constructor(unlockTime: Instant, lockTime: Instant? = null) :
+            this(0, unlockTime, lockTime)
 }
