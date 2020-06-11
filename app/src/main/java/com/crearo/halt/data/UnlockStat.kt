@@ -3,6 +3,7 @@ package com.crearo.halt.data
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.Instant
 
 /**
  * The idea is that each unlock corresponds to a lock time. This makes querying for data much easier.
@@ -11,7 +12,7 @@ import androidx.room.PrimaryKey
  **/
 @Entity(tableName = "unlock_stats_table")
 data class UnlockStat(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int,
-    @ColumnInfo(name = "unlock_time") val unlockTime: Long,
-    @ColumnInfo(name = "lock_time") val lockTime: Long
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long,
+    @ColumnInfo(name = "unlock_time") val unlockTime: Instant,
+    @ColumnInfo(name = "lock_time") val lockTime: Instant
 )

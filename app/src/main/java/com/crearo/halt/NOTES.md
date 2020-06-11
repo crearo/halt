@@ -97,3 +97,20 @@ I can only think of 2 things that will show up.
 
 Yeah, I actually want to know the affect of an app that runs in the background that does seemingly 
 not much than polling. Would be an interesting thing to see.
+
+
+#### Java Time
+
+Fuck why is dealing with time so hard. And why aren't there any tutorials on it? I'm stuck at how 
+to store date and time in the database. So there are two views of time: machine view and the human
+view. Machine view is time in a linear monotonically increasing number line since epoch. 
+Human view is hour, day, month, with timezone. 
+So machine view is more of a single source of truth. 
+Human view is what you should convert the single source of truth based on what your application needs
+to do for humans. Just my thoughts, I'm really clueless.
+From the little sense I can make of it, I think I should be storing date and time from epoch without
+the timezone. Take for example, what if I unlock my phone in Germany before I get on a plane to USA,
+and then lock it when I land where time updates. It'd fuck up all logic that I've built into the db.
+So then I could potentially store timezone along with it, but that's stupid, extra work, and a real
+edge case. 
+So, the machine view. Time since epoch is best.
