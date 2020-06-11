@@ -14,5 +14,12 @@ import java.time.Instant
 data class UnlockStat(
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Long,
     @ColumnInfo(name = "unlock_time") val unlockTime: Instant,
-    @ColumnInfo(name = "lock_time") val lockTime: Instant
-)
+    @ColumnInfo(name = "lock_time") var lockTime: Instant? = null
+
+) {
+    constructor(unlockTime: Instant, lockTime: Instant? = null) : this(
+        0,
+        unlockTime,
+        lockTime
+    )
+}

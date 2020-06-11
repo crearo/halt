@@ -2,6 +2,7 @@ package com.crearo.halt.data
 
 import androidx.room.*
 import io.reactivex.Completable
+import io.reactivex.Flowable
 import io.reactivex.Single
 import java.time.Instant
 
@@ -34,11 +35,14 @@ interface UnlockStatDao {
     @Query("DELETE FROM unlock_stats_table")
     fun deleteAll(): Completable
 
-    @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time LIMIT 1")
+    @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time LIMIT 1") // todo where lock_time is empty
     fun getLastUnlock(): Single<UnlockStat>
 
     /*** todo ensure startTime < endTime*/
     @Query("SELECT * FROM unlock_stats_table WHERE lock_time >= :startTime AND unlock_time <= :endTime")
     fun getUnlockStats(startTime: Instant, endTime: Instant): Single<List<UnlockStat>>
+
+    @Query("SELECT * FROM unlock_stats_table")
+    fun getUnlockStats(): Flowable<List<UnlockStat>>
 
 }

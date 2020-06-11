@@ -114,3 +114,9 @@ and then lock it when I land where time updates. It'd fuck up all logic that I'v
 So then I could potentially store timezone along with it, but that's stupid, extra work, and a real
 edge case. 
 So, the machine view. Time since epoch is best.
+
+
+#### CircleCI
+
+I've never set it up myself but those green badges do make the app look pretty fucking cool. I'll
+try and set it up once I have some test cases.
