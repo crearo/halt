@@ -6,9 +6,16 @@ import android.content.Intent
 import android.content.Intent.*
 import android.content.IntentFilter
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
+import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class AppForegroundService : Service() {
@@ -17,6 +24,8 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var phoneLockReceiver: PhoneLockBroadcastReceiver
+
+    private val compositeDisposable = CompositeDisposable()
 
     companion object {
         fun startService(context: Context) {
@@ -52,11 +61,31 @@ class AppForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         registerReceivers()
+        compositeDisposable.add(
+            Observable.interval(1, TimeUnit.SECONDS)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .map { isPhoneUnlocked() }
+                .distinctUntilChanged()
+                .doOnNext { value -> Timber.d("Interactive: $value") }
+                .subscribe()
+        )
+    }
+
+    /**
+     * todo: check if km.isDeviceSecure for whether a screen lock is enabled.
+     * also, move this out of here come on
+     * */
+    private fun isPhoneUnlocked(): Boolean {
+        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        return pm.isInteractive && !km.isDeviceLocked
     }
 
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceivers()
+        compositeDisposable.clear()
     }
 
     private fun registerReceivers() {

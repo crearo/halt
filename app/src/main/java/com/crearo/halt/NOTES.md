@@ -32,7 +32,16 @@ for that period. Fun, fun. This has edge cases for which I'll have to write good
 UnlockStat: id, unlock_time, lock_time, duration
 
 Also this table is going to become huge over time, and I'll need to find a way to limit how big it 
-gets. Maybe compress results from a month ago. 
+gets. Maybe compress results from a month ago.
+
+#### Problem with detecting when the phone is locked/unlocked
+
+The broadcast receiver won't cut it for me. The callback for SCREEN_OFF comes a bit after USER_PRESENT
+if you lock / unlock quick enough. What that means is it'll fuck up my logic for tracking un/locks.
+That's a tad bit upsetting because then I have to rely on constant polling. That works though.
+
+I'm gonna solve it for the PIN lock use case right now, but will have to try code it out for other
+types of screen locks.
 
 #### Cases
 

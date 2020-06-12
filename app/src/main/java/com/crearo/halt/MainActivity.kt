@@ -6,14 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.data.UnlockStatRepository
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import timber.log.Timber
-import java.time.Instant
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -21,29 +20,17 @@ class MainActivity : AppCompatActivity() {
 
     private val ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 1
 
-    private lateinit var notificationManager: NotificationManager;
+    private lateinit var notificationManager: NotificationManager
 
     @Inject
     lateinit var unlockStatRepository: UnlockStatRepository
+    private val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         AppForegroundService.startService(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val observable = unlockStatRepository.getUnlockStats()
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { list ->
-                findViewById<TextView>(R.id.textview).text = "total ${list.size}"
-            }
-
-        findViewById<Button>(R.id.button).setOnClickListener {
-            unlockStatRepository.addNewUnlock(Instant.now())
-                .doOnError { Timber.e("Failure") }
-                .doOnComplete { Timber.d("Success") }
-                .subscribe()
-        }
     }
 
     override fun onResume() {
@@ -65,6 +52,20 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        compositeDisposable.add(unlockStatRepository.getUnlockStats()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { list ->
+                findViewById<TextView>(R.id.textview).text = "total ${list.size}"
+            })
+    }
+
+    override fun onStop() {
+        super.onStop()
+        compositeDisposable.clear()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
