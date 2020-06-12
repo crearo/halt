@@ -2,6 +2,7 @@ package com.crearo.halt.data
 
 import io.reactivex.Completable
 import io.reactivex.Flowable
+import io.reactivex.schedulers.Schedulers
 import java.time.Instant
 import javax.inject.Inject
 
@@ -14,6 +15,8 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
      **/
     fun addNewUnlock(unlockInstant: Instant): Completable {
         return unlockStatDao.insertNewUnlock(UnlockStat(unlockInstant))
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
     }
 
     /**
@@ -31,5 +34,7 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
 
     fun getUnlockStats(): Flowable<List<UnlockStat>> {
         return unlockStatDao.getUnlockStats()
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
     }
 }

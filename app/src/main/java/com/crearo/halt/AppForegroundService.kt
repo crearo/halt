@@ -7,11 +7,16 @@ import android.content.Intent.*
 import android.content.IntentFilter
 import android.os.IBinder
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AppForegroundService : Service() {
 
     private val CHANNEL_ID = "AppForegroundService"
-    val phoneLockReceiver: PhoneLockBroadcastReceiver = PhoneLockBroadcastReceiver()
+
+    @Inject
+    lateinit var phoneLockReceiver: PhoneLockBroadcastReceiver
 
     companion object {
         fun startService(context: Context) {

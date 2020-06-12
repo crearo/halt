@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.data.UnlockStatRepository
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -35,15 +34,12 @@ class MainActivity : AppCompatActivity() {
 
         val observable = unlockStatRepository.getUnlockStats()
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribeOn(Schedulers.io())
             .subscribe { list ->
                 findViewById<TextView>(R.id.textview).text = "total ${list.size}"
             }
 
         findViewById<Button>(R.id.button).setOnClickListener {
             unlockStatRepository.addNewUnlock(Instant.now())
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.io())
                 .doOnError { Timber.e("Failure") }
                 .doOnComplete { Timber.d("Success") }
                 .subscribe()
