@@ -1,29 +1,21 @@
-package com.crearo.halt
+package com.crearo.halt.pollers
 
 import android.app.KeyguardManager
 import android.content.Context
 import android.os.PowerManager
 import com.crearo.halt.data.UnlockStatRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import timber.log.Timber
 import java.time.Instant.now
 import javax.inject.Inject
-import javax.inject.Named
 
-class PhoneLockStatePoller @Inject constructor(@ApplicationContext val context: Context) {
-
-    @Inject
-    @Named("ticker")
-    lateinit var tickerObservable: Observable<Long>
+class PhoneLockStatePoller @Inject constructor(@ApplicationContext context: Context) :
+    Poller(context) {
 
     @Inject
     lateinit var unlockStatRepository: UnlockStatRepository
 
-    private val compositeDisposable = CompositeDisposable()
-
-    fun start() {
+    override fun start() {
         compositeDisposable.add(tickerObservable
             .map { isPhoneUnlocked() }
             .distinctUntilChanged()
@@ -38,10 +30,6 @@ class PhoneLockStatePoller @Inject constructor(@ApplicationContext val context: 
         else unlockStatRepository.addNewLock(now()).subscribe()
     }
 
-    fun stop() {
-        compositeDisposable.clear()
-    }
-
     /**
      * todo: check if km.isDeviceSecure for whether a screen lock is enabled.
      * also, move this out of here come on
@@ -51,6 +39,5 @@ class PhoneLockStatePoller @Inject constructor(@ApplicationContext val context: 
         val km = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         return pm.isInteractive && !km.isDeviceLocked
     }
-
 
 }

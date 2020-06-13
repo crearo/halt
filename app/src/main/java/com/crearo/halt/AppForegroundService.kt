@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.content.ContextCompat
+import com.crearo.halt.pollers.DndPoller
+import com.crearo.halt.pollers.PhoneLockStatePoller
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -16,6 +18,9 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var phoneLockStatePoller: PhoneLockStatePoller
+
+    @Inject
+    lateinit var dndStatePoller: DndPoller
 
     companion object {
         fun startService(context: Context) {
@@ -51,11 +56,13 @@ class AppForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         phoneLockStatePoller.start()
+        dndStatePoller.start()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         phoneLockStatePoller.stop()
+        dndStatePoller.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
