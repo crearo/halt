@@ -4,14 +4,9 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.os.PowerManager
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
-import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
-import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Named
 
 
 @AndroidEntryPoint
@@ -19,11 +14,8 @@ class AppForegroundService : Service() {
 
     private val CHANNEL_ID = "AppForegroundService"
 
-    private val compositeDisposable = CompositeDisposable()
-
     @Inject
-    @Named("ticker")
-    lateinit var tickerObservable: Observable<Long>
+    lateinit var phoneLockStatePoller: PhoneLockStatePoller
 
     companion object {
         fun startService(context: Context) {
@@ -58,28 +50,12 @@ class AppForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        compositeDisposable.add(
-            tickerObservable
-                .map { isPhoneUnlocked() }
-                .distinctUntilChanged()
-                .doOnNext { value -> Timber.d("Interactive: $value") }
-                .subscribe()
-        )
-    }
-
-    /**
-     * todo: check if km.isDeviceSecure for whether a screen lock is enabled.
-     * also, move this out of here come on
-     * */
-    private fun isPhoneUnlocked(): Boolean {
-        val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
-        val km = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-        return pm.isInteractive && !km.isDeviceLocked
+        phoneLockStatePoller.start()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        compositeDisposable.clear()
+        phoneLockStatePoller.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
