@@ -9,9 +9,9 @@ import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Named
 
 
 @AndroidEntryPoint
@@ -20,6 +20,10 @@ class AppForegroundService : Service() {
     private val CHANNEL_ID = "AppForegroundService"
 
     private val compositeDisposable = CompositeDisposable()
+
+    @Inject
+    @Named("ticker")
+    lateinit var tickerObservable: Observable<Long>
 
     companion object {
         fun startService(context: Context) {
@@ -55,9 +59,7 @@ class AppForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         compositeDisposable.add(
-            Observable.interval(1, TimeUnit.SECONDS)
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
+            tickerObservable
                 .map { isPhoneUnlocked() }
                 .distinctUntilChanged()
                 .doOnNext { value -> Timber.d("Interactive: $value") }
