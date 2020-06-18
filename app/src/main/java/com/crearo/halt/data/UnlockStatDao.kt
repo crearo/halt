@@ -35,7 +35,7 @@ interface UnlockStatDao {
     @Query("DELETE FROM unlock_stats_table")
     fun deleteAll(): Completable
 
-    @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time LIMIT 1") // todo where lock_time is empty
+    @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time DESC LIMIT 1") // todo where lock_time is empty
     fun getLastUnlock(): Single<UnlockStat>
 
     /*** todo ensure startTime < endTime*/
