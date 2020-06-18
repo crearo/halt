@@ -129,3 +129,20 @@ So, the machine view. Time since epoch is best.
 
 I've never set it up myself but those green badges do make the app look pretty fucking cool. I'll
 try and set it up once I have some test cases.
+
+
+#### Think some more
+
+- I have to set DND off at ~10pm and re-enable it after a few hours after the first use of the
+ phone in the morning. This shit is time based and condition based. So should I create a TimePoller,
+ or should this happen in DndPoller? I guess DndPoller only. Easiest there.
+ No.
+ That's wrong. Because that's giving it a whole lot of responsibility.
+ Here's when my app is going to enable DND on it's own:
+    - Enable DND at ~10pm
+    - Disable it some hours after the morning
+    - Enable and disable randomly throughout the day based on usage (the exact way I will decide
+      when to do it still has to be decided)
+    - I also want to allow the user to struggle to disable DND. Make them disable it 5-10 times
+      before the app finally gives in and lets them have their way. This means a lot of work in one
+      class, or some genius level code.

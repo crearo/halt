@@ -19,4 +19,9 @@ data class UnlockStat(
 ) {
     constructor(unlockTime: Instant, lockTime: Instant? = null) :
             this(0, unlockTime, lockTime)
+
+    /** @return if the both the unlock and lock time have been filled */
+    fun isFilled(): Boolean {
+        return unlockTime.epochSecond != -1L && lockTime != null && lockTime!!.epochSecond != -1L
+    }
 }
