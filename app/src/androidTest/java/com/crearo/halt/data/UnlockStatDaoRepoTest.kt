@@ -8,7 +8,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import java.time.Duration
+import java.time.*
 import java.time.Instant.ofEpochSecond
 
 @RunWith(AndroidJUnit4::class)
@@ -96,12 +96,67 @@ class UnlockStatDaoRepoTest {
     }
 
     private fun testTotalTimeUsed(startTime: Long, endTime: Long, expectedTime: Long) {
-        unlockStatDao.deleteAll()
         insertTestData()
         repository.getTotalTimeUsed(ofEpochSecond(startTime), ofEpochSecond(endTime))
             .test()
             .await()
             .assertValue(Duration.ofSeconds(expectedTime))
+    }
+
+    /*
+    * First unlock of today:
+    *   - error if there is no unlock yet
+    *   - error if we check for some random day
+    *   - correct value for single unlock
+    *   - correct value for multiple unlocks
+    */
+
+    @Test
+    fun testFirstUnlockOfToday_noUnlockYet() {
+        val today = LocalDate.of(2020, 4, 20)
+        repository.addNewUnlock(getInstant(today, 1, 0)).test().await()
+        repository.addNewLock(getInstant(today, 1, 2)).test().await()
+
+        repository.getFirstUnlock(today).test().await()
+            .assertError(NoSuchElementException::class.java)
+    }
+
+    @Test
+    fun testFirstUnlockOfToday_randomDayWithNoEntries() {
+        val today = LocalDate.of(2020, 4, 20)
+        repository.addNewUnlock(getInstant(today, 1, 0)).test().await()
+        repository.addNewLock(getInstant(today, 1, 2)).test().await()
+
+        val randomDay = LocalDate.of(2020, 4, 21)
+        repository.getFirstUnlock(randomDay).test().await()
+            .assertError(NoSuchElementException::class.java)
+    }
+
+    @Test
+    fun testFirstUnlockOfToday_firstUnlockDone() {
+        val today = LocalDate.of(2020, 4, 20)
+        repository.addNewUnlock(getInstant(today, 6, 0)).test().await()
+        repository.addNewLock(getInstant(today, 6, 2)).test().await()
+
+        repository.getFirstUnlock(today).test().await()
+            .assertValue { it.unlockTime == getInstant(today, 6, 0) }
+    }
+
+
+    @Test
+    fun testFirstUnlockOfToday_firstUnlockDone_multipleUnlocks() {
+        val today = LocalDate.of(2020, 4, 20)
+        repository.addNewUnlock(getInstant(today, 5, 20)).test().await()
+        repository.addNewLock(getInstant(today, 5, 25)).test().await()
+        repository.addNewUnlock(getInstant(today, 6, 10)).test().await()
+        repository.addNewLock(getInstant(today, 6, 12)).test().await()
+
+        repository.getFirstUnlock(today).test().await()
+            .assertValue { it.unlockTime == getInstant(today, 5, 20) }
+    }
+
+    private fun getInstant(localDate: LocalDate, hour: Int, min: Int): Instant {
+        return LocalDateTime.of(localDate, LocalTime.of(hour, min)).toInstant(ZoneOffset.UTC)
     }
 
 }

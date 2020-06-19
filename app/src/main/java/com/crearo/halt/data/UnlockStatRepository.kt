@@ -6,7 +6,6 @@ import io.reactivex.Single
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import java.time.*
-import java.time.Instant.now
 import java.time.ZoneOffset.UTC
 import javax.inject.Inject
 
@@ -22,9 +21,9 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
      * Thazz a function of here. But, we should still pass on that info in case activity decides to
      * do something about it.
      **/
-    fun addNewUnlock(unlockInstant: Instant): Completable {
+    fun addNewUnlock(unlockInstantUtc: Instant): Completable {
         return unlockStatDao
-            .insertNewUnlock(UnlockStat(unlockInstant))
+            .insertNewUnlock(UnlockStat(unlockInstantUtc))
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
     }
@@ -33,11 +32,11 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
      * todo I wanna know what happens if there are elements before. Does that get propagated through an error from Single->Completable?
      * That'd be awesome.
      **/
-    fun addNewLock(lockInstant: Instant): Completable {
+    fun addNewLock(lockInstantUtc: Instant): Completable {
         return unlockStatDao
             .getLastUnlock()
             .flatMapCompletable { unlockStat ->
-                unlockStat.lockTime = lockInstant
+                unlockStat.lockTime = lockInstantUtc
                 unlockStatDao.updateCorrespondingLock(unlockStat)
             }
     }
@@ -52,14 +51,14 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
      * @return total time the phone is used between the given parameters. This accounts for a
      * currently ongoing unlock session
      **/
-    fun getTotalTimeUsed(startTime: Instant, endTime: Instant): Single<Duration> {
-        if (startTime.isAfter(endTime)) throw IllegalArgumentException("startTime is after endTime")
+    fun getTotalTimeUsed(startTimeUtc: Instant, endTimeUtc: Instant): Single<Duration> {
+        if (startTimeUtc.isAfter(endTimeUtc)) throw IllegalArgumentException("startTime is after endTime")
         val completedUsageCycles = unlockStatDao
-            .getUnlockStats(startTime, endTime)
+            .getUnlockStats(startTimeUtc, endTimeUtc)
             .flattenAsFlowable { it }
             .map {
                 Duration.between(
-                    max(startTime, it.unlockTime), min(endTime, it.lockTime!!)
+                    max(startTimeUtc, it.unlockTime), min(endTimeUtc, it.lockTime!!)
                 )
             }
             .reduce { val1: Duration, val2: Duration -> val1.plus(val2) }
@@ -68,8 +67,8 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
 
         val ongoingUsage = unlockStatDao
             .getLastUnlock()
-            .filter { !it.isFilled() && it.unlockTime.isBefore(endTime) }
-            .map { Duration.between(it.unlockTime, endTime) }
+            .filter { !it.isFilled() && it.unlockTime.isBefore(endTimeUtc) }
+            .map { Duration.between(it.unlockTime, endTimeUtc) }
             .defaultIfEmpty(Duration.ZERO)
             .toSingle()
 
@@ -77,20 +76,21 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
     }
 
     /**
-     * Defined as the first time the phone was checked after 5am after having not used the phone
-     * for an hour. Note, here we have to convert the user's 5am to UTC because that's what things
+     * Defined as the first time the phone was checked after the person wakes up.
+     * *I* am defining this as a time after 5am.
+     * Note, here we have to convert the user's 5am to UTC because that's what things
      * are stored in.
      * @return error if the first unlock of the day hasn't happened yet
      **/
-    fun getFirstUnlockPost5AM(): Single<() -> UnlockStat> {
-        val fiveAmTodayInUTC = LocalDateTime.of(LocalDate.now(), LocalTime.of(5, 0))
+    fun getFirstUnlock(nowLocalZone: LocalDate): Single<UnlockStat> {
+        val fiveAmTodayInUtc = LocalDateTime.of(nowLocalZone, LocalTime.of(5, 0))
             .toInstant(UTC)
-        if (now().isBefore(fiveAmTodayInUTC)) {
-            return Single.error(IllegalStateException("now() is before 5am today"))
-        }
         return unlockStatDao
-            .getUnlockStats(fiveAmTodayInUTC, now())
-            .map { list -> { list.first() } }
+            .getUnlockStats(
+                fiveAmTodayInUtc,
+                LocalDateTime.of(nowLocalZone, LocalTime.of(23, 59)).toInstant(UTC)
+            )
+            .map { it.first() }
     }
 
     private fun max(val1: Instant, val2: Instant): Instant {
