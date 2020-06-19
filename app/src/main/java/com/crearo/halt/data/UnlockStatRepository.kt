@@ -56,17 +56,16 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
         if (startTime.isAfter(endTime)) throw IllegalArgumentException("startTime is after endTime")
         val completedUsageCycles = unlockStatDao
             .getUnlockStats(startTime, endTime)
-            .map { list ->
-                list
-                    .stream()
-                    .map {
-                        Duration.between(
-                            max(startTime, it.unlockTime), min(endTime, it.lockTime!!)
-                        )
-                    }
-                    .reduce { val1: Duration, val2: Duration -> val1.plus(val2) }
-                    .orElse(Duration.ZERO)
+            .flattenAsFlowable { it }
+            .map {
+                Duration.between(
+                    max(startTime, it.unlockTime), min(endTime, it.lockTime!!)
+                )
             }
+            .reduce { val1: Duration, val2: Duration -> val1.plus(val2) }
+            .defaultIfEmpty(Duration.ZERO)
+            .toSingle()
+
         val ongoingUsage = unlockStatDao
             .getLastUnlock()
             .filter { !it.isFilled() && it.unlockTime.isBefore(endTime) }
