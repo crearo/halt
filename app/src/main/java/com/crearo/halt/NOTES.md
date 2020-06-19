@@ -1,7 +1,7 @@
 Just noting things down over here because it's the easiest place to track thought. Don't wanna be
 making yet another Google Doc and then link shit. Plus markdown is awesome.
 
-### Notes
+# Notes
 
 - Remember, I'm making this app for me, based on my habits. I can consider what features and
 generalizations it should have when I have proven it works for me.
@@ -146,3 +146,21 @@ try and set it up once I have some test cases.
     - I also want to allow the user to struggle to disable DND. Make them disable it 5-10 times
       before the app finally gives in and lets them have their way. This means a lot of work in one
       class, or some genius level code.
+
+
+#### Progress update: 19.06.20
+
+Okay so now I'm getting the hang of writing test cases, I have written some pretty kick ass RxJava,
+the java.time API is awesome. Things are looking up. What I need to do next is write test cases
+for input of un/lock data to the database. And all the edge cases there. That foundation gotta be
+really strong and handle the case for many time zones and all.
+Then, write that automater for setting DND that's on as often as possible. The logic has to be solid
+there.
+Also, I watched a video on similar apps and then realized how our mind makes associations on where
+the icon for the app is and so it's a reflexive action to open our beloved apps. So, when we're over
+using, one thing I can do is show UI that doesn't show up the same every time. So, it isn't only a
+button which shows up in random locations but possibly also require a bit more effort like do a
+calculation, use four fingers or something more involved. That way it isn't just a reflex, but you
+need some more thinking.
+
+Do I think all of this is worth doing? Hell yeah. I'm using my phone way more than I should.
