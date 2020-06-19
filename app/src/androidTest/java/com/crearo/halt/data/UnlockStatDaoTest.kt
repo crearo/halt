@@ -1,9 +1,6 @@
 package com.crearo.halt.data
 
-import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.room.Room
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Before
@@ -23,10 +20,7 @@ class UnlockStatDaoTest {
 
     @Before
     fun createDb() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, AppRoomDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
+        db = UnlockStatDaoDbInitHelper.createDb()
         unlockStatDao = db.unlockStatDao()
     }
 

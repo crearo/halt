@@ -38,7 +38,10 @@ interface UnlockStatDao {
     @Query("SELECT * FROM unlock_stats_table ORDER BY unlock_time DESC LIMIT 1") // todo where lock_time is empty
     fun getLastUnlock(): Single<UnlockStat>
 
-    /*** todo ensure startTime < endTime*/
+    /**
+     * @return exactly all those unlock stats between the given times. This does not account for
+     * an ongoing unlock cycle.
+     **/
     @Query("SELECT * FROM unlock_stats_table WHERE lock_time >= :startTime AND unlock_time <= :endTime")
     fun getUnlockStats(startTime: Instant, endTime: Instant): Single<List<UnlockStat>>
 

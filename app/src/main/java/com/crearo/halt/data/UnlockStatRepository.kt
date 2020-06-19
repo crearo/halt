@@ -3,17 +3,12 @@ package com.crearo.halt.data
 import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.Single
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
-import java.time.Instant
+import java.time.*
 import java.time.Instant.now
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneOffset.UTC
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.math.max
-import kotlin.math.min
 
 class UnlockStatRepository @Inject constructor(private val unlockStatDao: UnlockStatDao) {
 
@@ -53,16 +48,33 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
             .observeOn(Schedulers.io())
     }
 
-    fun getTotalTimeUsed(startTime: Instant, endTime: Instant): Single<Long> {
-        return unlockStatDao.getUnlockStats(startTime, endTime)
+    /**
+     * @return total time the phone is used between the given parameters. This accounts for a
+     * currently ongoing unlock session
+     **/
+    fun getTotalTimeUsed(startTime: Instant, endTime: Instant): Single<Duration> {
+        if (startTime.isAfter(endTime)) throw IllegalArgumentException("startTime is after endTime")
+        val completedUsageCycles = unlockStatDao
+            .getUnlockStats(startTime, endTime)
             .map { list ->
-                list.stream().mapToLong {
-                    TimeUnit.MILLISECONDS.toSeconds(
-                        max(startTime, it.unlockTime)
-                                + min(endTime, it.lockTime!!)
-                    )
-                }.sum()
+                list
+                    .stream()
+                    .map {
+                        Duration.between(
+                            max(startTime, it.unlockTime), min(endTime, it.lockTime!!)
+                        )
+                    }
+                    .reduce { val1: Duration, val2: Duration -> val1.plus(val2) }
+                    .orElse(Duration.ZERO)
             }
+        val ongoingUsage = unlockStatDao
+            .getLastUnlock()
+            .filter { !it.isFilled() && it.unlockTime.isBefore(endTime) }
+            .map { Duration.between(it.unlockTime, endTime) }
+            .defaultIfEmpty(Duration.ZERO)
+            .toSingle()
+
+        return Single.zip(completedUsageCycles, ongoingUsage, BiFunction { t1, t2 -> t1.plus(t2) })
     }
 
     /**
@@ -82,11 +94,11 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
             .map { list -> { list.first() } }
     }
 
-    private fun max(val1: Instant, val2: Instant): Long {
-        return max(val1.toEpochMilli(), val2.toEpochMilli())
+    private fun max(val1: Instant, val2: Instant): Instant {
+        return if (val1.isAfter(val2)) val1 else val2
     }
 
-    private fun min(val1: Instant, val2: Instant): Long {
-        return min(val1.toEpochMilli(), val2.toEpochMilli())
+    private fun min(val1: Instant, val2: Instant): Instant {
+        return if (val1.isBefore(val2)) val1 else val2
     }
 }
