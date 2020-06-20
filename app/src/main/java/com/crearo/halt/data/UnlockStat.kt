@@ -24,4 +24,8 @@ data class UnlockStat(
     fun isFilled(): Boolean {
         return unlockTime.epochSecond != -1L && lockTime != null && lockTime!!.epochSecond != -1L
     }
+
+    companion object {
+        val EMPTY = UnlockStat(0, Instant.ofEpochSecond(0), Instant.ofEpochSecond(0))
+    }
 }

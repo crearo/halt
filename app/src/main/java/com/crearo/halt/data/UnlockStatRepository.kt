@@ -20,12 +20,25 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
      * unable to save things because of some failure. It isn't like the activity will do that.
      * Thazz a function of here. But, we should still pass on that info in case activity decides to
      * do something about it.
+     *
+     * So if it does fail, mark the previous record so that the user spent 0 seconds on it, and log
+     * this on, and propagate this as an error. Also log it to firebase.
      **/
     fun addNewUnlock(unlockInstantUtc: Instant): Completable {
-        return unlockStatDao
-            .insertNewUnlock(UnlockStat(unlockInstantUtc))
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
+        val insertNewUnlockCompletable = unlockStatDao.insertNewUnlock(UnlockStat(unlockInstantUtc))
+
+        val checkPreviousRecordFilledCompletable = unlockStatDao
+            .getLastUnlock()
+            .onErrorReturnItem(UnlockStat.EMPTY)
+            .flatMapCompletable {
+                if (!it.isFilled()) {
+                    addNewLock(it.unlockTime)/*.andThen {
+                        Completable.error(IllegalStateException("Recovering from a situation where previous record was not filled."))
+                    }*/
+                } else Completable.complete()
+            }
+
+        return checkPreviousRecordFilledCompletable.andThen(insertNewUnlockCompletable)
     }
 
     /**
@@ -35,14 +48,24 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
     fun addNewLock(lockInstantUtc: Instant): Completable {
         return unlockStatDao
             .getLastUnlock()
-            .flatMapCompletable { unlockStat ->
-                unlockStat.lockTime = lockInstantUtc
-                unlockStatDao.updateCorrespondingLock(unlockStat)
+            .flatMapCompletable {
+                if (it.isFilled()) {
+                    Completable.error { IllegalStateException("Previous record already recorded a lock.") }
+                } else {
+                    it.lockTime = lockInstantUtc
+                    unlockStatDao.updateCorrespondingLock(it)
+                }
             }
     }
 
     fun getUnlockStats(): Flowable<List<UnlockStat>> {
         return unlockStatDao.getUnlockStats()
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+    }
+
+    fun getLastUnlock(): Single<UnlockStat> {
+        return unlockStatDao.getLastUnlock()
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
     }

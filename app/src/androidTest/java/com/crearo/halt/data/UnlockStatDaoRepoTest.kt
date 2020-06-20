@@ -1,6 +1,7 @@
 package com.crearo.halt.data
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.room.EmptyResultSetException
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.After
 import org.junit.Before
@@ -26,12 +27,64 @@ class UnlockStatDaoRepoTest {
         db = UnlockStatDaoDbInitHelper.createDb()
         unlockStatDao = db.unlockStatDao()
         repository = UnlockStatRepository(unlockStatDao)
+        unlockStatDao.deleteAll().test().await()
     }
 
     @After
     @Throws(IOException::class)
     fun closeDb() {
         db.close()
+    }
+
+    /*
+     * Testing insert unlock and lock
+     * - insert normal lock and then unlock
+     * - insert consecutive unlocks: previous unlock should be marked with a lock of 0 sec duration
+     * */
+
+    @Test
+    fun testEmptyLastUnlock_shouldReturnError() {
+        repository.getLastUnlock().test().await().assertError(EmptyResultSetException::class.java)
+    }
+
+    @Test
+    fun testSimpleInsertUnlock() {
+        repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
+        repository.getUnlockStats()
+            .test()
+            .awaitCount(1)
+            .assertValue { it.size == 1 }
+    }
+
+    @Test
+    fun testInsertConsecutiveUnlocks() {
+        repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
+        repository.addNewUnlock(ofEpochSecond(20)).test().await()
+            .assertNoErrors()
+//            .assertError(IllegalStateException::class.java)
+        repository.getUnlockStats()
+            .test()
+            .awaitCount(1)
+            .assertValue { it.size == 2 }
+    }
+
+    @Test
+    fun testSimpleInsertLockWithoutUnlock() {
+        repository.addNewLock(ofEpochSecond(10)).test().await()
+            .assertError(EmptyResultSetException::class.java)
+    }
+
+    @Test
+    fun testInsertData() {
+        repository.getUnlockStats()
+            .test()
+            .awaitCount(1)
+            .assertValue { it.isEmpty() }
+        insertTestData()
+        repository.getUnlockStats()
+            .test()
+            .awaitCount(1)
+            .assertValue { it.size == 5 }
     }
 
     private fun insertTestData() {
@@ -45,20 +98,6 @@ class UnlockStatDaoRepoTest {
         repository.addNewLock(ofEpochSecond(34)).test().await() // 19 seconds
         // the last one doesn't have a corresponding lock
         repository.addNewUnlock(ofEpochSecond(40)).test().await()
-    }
-
-    @Test
-    fun testInsertData() {
-        unlockStatDao.deleteAll()
-        repository.getUnlockStats()
-            .test()
-            .awaitCount(1)
-            .assertValue { it.isEmpty() }
-        insertTestData()
-        repository.getUnlockStats()
-            .test()
-            .awaitCount(1)
-            .assertValue { it.size == 5 }
     }
 
     /*
@@ -141,7 +180,6 @@ class UnlockStatDaoRepoTest {
         repository.getFirstUnlock(today).test().await()
             .assertValue { it.unlockTime == getInstant(today, 6, 0) }
     }
-
 
     @Test
     fun testFirstUnlockOfToday_firstUnlockDone_multipleUnlocks() {
