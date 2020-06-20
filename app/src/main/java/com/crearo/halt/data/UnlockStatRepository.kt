@@ -12,17 +12,12 @@ import javax.inject.Inject
 class UnlockStatRepository @Inject constructor(private val unlockStatDao: UnlockStatDao) {
 
     /**
-     * todo check:
      * 1. We aren't inserting a new unlock before inserting the previous lock
      * 2. The insert is sequential and monotonically increasing
      *
-     * todo: i also think the repository should handle the case where shit goes down and we are
-     * unable to save things because of some failure. It isn't like the activity will do that.
-     * Thazz a function of here. But, we should still pass on that info in case activity decides to
-     * do something about it.
-     *
-     * So if it does fail, mark the previous record so that the user spent 0 seconds on it, and log
-     * this on, and propagate this as an error. Also log it to firebase.
+     * It also tries to recover from an unusual state where we have two consecutive unlocks without
+     * a lock. mark the previous record so that the user spent 0 seconds on it, and log this on,
+     * todo: and propagate this as an error. Also log it to firebase.
      **/
     fun addNewUnlock(unlockInstantUtc: Instant): Completable {
         val insertNewUnlockCompletable = unlockStatDao.insertNewUnlock(UnlockStat(unlockInstantUtc))
@@ -31,29 +26,47 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
             .getLastUnlock()
             .onErrorReturnItem(UnlockStat.EMPTY)
             .flatMapCompletable {
-                if (!it.isFilled()) {
-                    addNewLock(it.unlockTime)
-                    // todo: throw IllegalStateException("Recovering from a situation where previous record was not filled.")
-                    //  I'm unable to get this to throw over here
-                } else Completable.complete()
+                when {
+                    !it.isFilled() -> {
+                        addNewLock(it.unlockTime)
+                        // todo: throw IllegalStateException("Recovering from a situation where previous record was not filled.")
+                        //  I'm unable to get this to throw over here
+                    }
+                    it.lockTime!!.isAfter(unlockInstantUtc) -> {
+                        Completable.error(
+                            IllegalStateException(
+                                "Previous lock time is after currently unlock time. Previous Lock Time= ${it.lockTime}, Current Unlock Time= $unlockInstantUtc"
+                            )
+                        )
+                    }
+                    else -> {
+                        Completable.complete()
+                    }
+                }
             }
 
         return checkPreviousRecordFilledCompletable.andThen(insertNewUnlockCompletable)
     }
 
-    /**
-     * todo I wanna know what happens if there are elements before. Does that get propagated through an error from Single->Completable?
-     * That'd be awesome.
-     **/
     fun addNewLock(lockInstantUtc: Instant): Completable {
         return unlockStatDao
             .getLastUnlock()
             .flatMapCompletable {
-                if (it.isFilled()) {
-                    Completable.error { IllegalStateException("Previous record already recorded a lock.") }
-                } else {
-                    it.lockTime = lockInstantUtc
-                    unlockStatDao.updateCorrespondingLock(it)
+                when {
+                    it.isFilled() -> {
+                        Completable.error { IllegalStateException("Previous record already recorded a lock.") }
+                    }
+                    it.unlockTime.isAfter(lockInstantUtc) -> {
+                        Completable.error {
+                            IllegalStateException(
+                                "Previous unlock time is after current lock time." + "Previous Unlock Time= ${it.unlockTime}, Current Lock Time= $lockInstantUtc"
+                            )
+                        }
+                    }
+                    else -> {
+                        it.lockTime = lockInstantUtc
+                        unlockStatDao.updateCorrespondingLock(it)
+                    }
                 }
             }
     }

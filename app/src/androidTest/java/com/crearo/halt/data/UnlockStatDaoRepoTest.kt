@@ -48,7 +48,7 @@ class UnlockStatDaoRepoTest {
     }
 
     @Test
-    fun testSimpleInsertUnlock() {
+    fun testSingleInsertUnlock() {
         repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
         repository.getUnlockStats()
             .test()
@@ -69,9 +69,34 @@ class UnlockStatDaoRepoTest {
     }
 
     @Test
-    fun testSimpleInsertLockWithoutUnlock() {
+    fun testSingleInsertLockWithoutUnlock() {
         repository.addNewLock(ofEpochSecond(10)).test().await()
             .assertError(EmptyResultSetException::class.java)
+    }
+
+    @Test
+    fun testConsecutiveInsertLockWithoutUnlock() {
+        repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
+        repository.addNewLock(ofEpochSecond(12)).test().await().assertNoErrors()
+        repository.addNewLock(ofEpochSecond(14)).test().await()
+            .assertError(IllegalStateException::class.java)
+    }
+
+    @Test
+    fun testAddingUnlockWithTimeBeforePreviousLocksTime() {
+        repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
+        repository.addNewLock(ofEpochSecond(12)).test().await().assertNoErrors()
+        repository.addNewUnlock(ofEpochSecond(8)).test().await().assertError(
+            IllegalStateException::class.java
+        )
+    }
+
+    @Test
+    fun testAddingLockWithTimeBeforeUnlockTime() {
+        repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
+        repository.addNewLock(ofEpochSecond(8)).test().await().assertError(
+            IllegalStateException::class.java
+        )
     }
 
     @Test
