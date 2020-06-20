@@ -32,9 +32,9 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
             .onErrorReturnItem(UnlockStat.EMPTY)
             .flatMapCompletable {
                 if (!it.isFilled()) {
-                    addNewLock(it.unlockTime)/*.andThen {
-                        Completable.error(IllegalStateException("Recovering from a situation where previous record was not filled."))
-                    }*/
+                    addNewLock(it.unlockTime)
+                    // todo: throw IllegalStateException("Recovering from a situation where previous record was not filled.")
+                    //  I'm unable to get this to throw over here
                 } else Completable.complete()
             }
 

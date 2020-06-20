@@ -61,7 +61,7 @@ class UnlockStatDaoRepoTest {
         repository.addNewUnlock(ofEpochSecond(10)).test().await().assertNoErrors()
         repository.addNewUnlock(ofEpochSecond(20)).test().await()
             .assertNoErrors()
-//            .assertError(IllegalStateException::class.java)
+        // todo, ideally, we'd want an error over here .assertError(IllegalStateException::class.java)
         repository.getUnlockStats()
             .test()
             .awaitCount(1)
