@@ -2,9 +2,14 @@ package com.crearo.halt.pollers
 
 import android.content.Context
 import com.crearo.halt.data.DndRepository
+import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.rx.DndStateBus
 import com.crearo.halt.rx.DndStateEnum
+import com.crearo.halt.rx.PhoneLockStateBus
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +25,12 @@ class DndSetter @Inject constructor(@ApplicationContext context: Context) :
 
     @Inject
     lateinit var dndStateBus: DndStateBus
+
+    @Inject
+    lateinit var phoneLockStateBus: PhoneLockStateBus
+
+    @Inject
+    lateinit var unlockStatRepository: UnlockStatRepository
 
     override fun start() {
         compositeDisposable.add(
@@ -39,6 +50,23 @@ class DndSetter @Inject constructor(@ApplicationContext context: Context) :
                     dndRepository.setDnd()
                 }
             }
+        )
+
+        // sets DND off after an hour of using it. FIXME: this should happen not like this. lol too tired to explain.
+        compositeDisposable.add(
+            phoneLockStateBus
+                .getState()
+                .subscribe {
+                    unlockStatRepository.getFirstUnlock(LocalDate.now())
+                        .subscribe { unlockStat, _ ->
+                            if (unlockStat != null
+                                && Duration.between(unlockStat.unlockTime, Instant.now())
+                                    .toMinutes() >= 60L
+                            ) {
+                                dndRepository.setNoDnd()
+                            }
+                        }
+                }
         )
     }
 

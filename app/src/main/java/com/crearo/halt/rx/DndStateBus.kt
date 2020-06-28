@@ -15,7 +15,7 @@ class DndStateBus @Inject constructor() {
     }
 
     fun getState(): Observable<DndState> {
-        return subject;
+        return subject
     }
 
 }
