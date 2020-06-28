@@ -16,9 +16,31 @@ generalizations it should have when I have proven it works for me.
  doing.
 - My aim is to primarily block Instagram and mindless scrolling, or mindless watching of videos. 
 So, I'm going to heavily distinguish between these. If it is possible to know which website is 
-currently being used (it is because AppBlock has it without root), then I can track that too. 
+currently being used (it is because AppBlock has it without root), then I can track that too.
 
-### TODO 
+--
+
+Okay now I'm at a point where all proof-of-tech is working and the backbone of the app is ready.
+But, now I'm confused on what I actually want to do.
+There are 2 main things:
+1. Intent based phone usage. So you are asked what you want to do when you unlock your phone.
+    Caveat: not every time you unlock your phone. Only when you've overused it. (TODO DEFINE OVERUSE)
+    Two modes to chose from: 1. Focused 2. Social
+    Focused: blocks you from opening distracting apps + ensures phone is on DND with notifs hidden.
+    Social: Every unlocked.
+
+    Now, choosing between Focused and Social will be different every time you open the phone, so
+    that I don't develop muscle memory.
+    I will also have to limit how many times a user is allowed to click Social without making the
+    apps unusable altogether. How do I do this?
+2. Automatic DND. This refers to the notifications only.
+    I can't decide how this should work.
+    Options:
+        - automatic DND after 10pm
+        - set DND after 5am and disable it in the morning an hour after you wake up.
+        - keep setting DND at random points in the day, especially on over-use of your phone.
+
+### TODO
 
 #### Store unlock times in Room
 
