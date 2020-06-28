@@ -1,7 +1,7 @@
 package com.crearo.halt.pollers
 
 import android.content.Context
-import com.crearo.halt.DndRepository
+import com.crearo.halt.data.DndRepository
 import com.crearo.halt.rx.DndState
 import com.crearo.halt.rx.DndStateBus
 import dagger.hilt.android.qualifiers.ApplicationContext

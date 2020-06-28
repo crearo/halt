@@ -1,4 +1,4 @@
-package com.crearo.halt
+package com.crearo.halt.data
 
 import android.app.NotificationManager
 import android.content.Context

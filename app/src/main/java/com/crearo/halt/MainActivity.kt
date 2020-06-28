@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.crearo.halt.data.DndRepository
 import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.rx.DndStateBus
 import com.crearo.halt.rx.DndStateEnum
