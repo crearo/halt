@@ -186,3 +186,14 @@ calculation, use four fingers or something more involved. That way it isn't just
 need some more thinking.
 
 Do I think all of this is worth doing? Hell yeah. I'm using my phone way more than I should.
+
+#### Progress update: 28.06.20
+
+I am stuck at a strange place. I want my code to be reactive, but I also need some parts of it to
+be poll based.
+DND state changes can happen in two places: the user clicks on it by themself, or I do it through
+code. I can track the change by polling the DND state every second.
+If I set state from code, then I know I did that from code. But, I will also have to transfer this
+info to DndPoller.
+Okay, let's just list out what DndPoller should do: track Dnd state and emit whenever there is a
+change. This emitted event should also contain if the change was done by the user or by our code.
