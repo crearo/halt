@@ -20,9 +20,15 @@ class DndRepository @Inject constructor(@ApplicationContext context: Context) {
      **/
     val isTriggeredByPhone = AtomicBoolean(false)
 
+    /**
+     * This is so that the user can't use the DND UI to stop DND.
+     **/
+    val shouldBeMaintained = AtomicBoolean(false)
+
     fun setDnd() {
         if (notificationManager.isNotificationPolicyAccessGranted) {
             isTriggeredByPhone.set(true)
+            shouldBeMaintained.set(true)
             notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
         }
     }
@@ -30,6 +36,7 @@ class DndRepository @Inject constructor(@ApplicationContext context: Context) {
     fun setNoDnd() {
         if (notificationManager.isNotificationPolicyAccessGranted) {
             isTriggeredByPhone.set(true)
+            shouldBeMaintained.set(false)
             notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
         }
     }

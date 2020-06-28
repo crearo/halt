@@ -32,11 +32,11 @@ object RxModule {
     @Singleton
     @Named("time_ticker")
     fun provideTimeTickerObservable(): Observable<LocalTime> {
-        return Observable.interval(1, TimeUnit.SECONDS)
-            .map { LocalTime.now() }
-            .distinctUntilChanged { t1, t2 -> t1.hour == t2.hour && t1.minute == t2.minute }
+        return Observable.interval(15, TimeUnit.SECONDS)
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
+            .map { LocalTime.now() }
+            .distinctUntilChanged { t1, t2 -> t1.hour == t2.hour && t1.minute == t2.minute }
             .share()
     }
 
