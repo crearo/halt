@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
 
+
 class DndPoller @Inject constructor(@ApplicationContext context: Context) :
     Poller(context) {
 
@@ -19,6 +20,20 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
             .doOnNext { state -> onDndStateChanged(state) }
             .subscribe()
         )
+        compositeDisposable.add(
+            timeObservable
+                .subscribe {
+                    if (it.hour == 5 && it.minute == 0) {
+                        setDnd()
+                    }
+                }
+        )
+    }
+
+    private fun setDnd() {
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
+        }
     }
 
     private fun onDndStateChanged(state: DndState) {
