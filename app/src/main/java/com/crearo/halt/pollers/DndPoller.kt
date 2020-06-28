@@ -9,11 +9,13 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Tracks and broadcasts the phone's DND state. The broadcast event contains whether it was
  * triggered by the phone or the user.
  **/
+@Singleton
 class DndPoller @Inject constructor(@ApplicationContext context: Context) :
     Poller(context) {
 
@@ -27,17 +29,27 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
 
     override fun start() {
         compositeDisposable.add(tickerObservable
-            .map { isDndEnabled(isTriggeredByPhone.get()) }
+            .map { isDndEnabled() }
             .distinctUntilChanged()
-            .doOnNext { state -> onDndStateChanged(state) }
+            .doOnNext { state ->
+                val wasTriggeredByPhone = isTriggeredByPhone.getAndSet(false)
+                onDndStateChanged(DndState(state, wasTriggeredByPhone))
+            }
             .subscribe()
         )
     }
 
-    private fun setDnd() {
+    fun setDnd() {
         if (notificationManager.isNotificationPolicyAccessGranted) {
             isTriggeredByPhone.set(true)
             notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
+        }
+    }
+
+    fun setNoDnd() {
+        if (notificationManager.isNotificationPolicyAccessGranted) {
+            isTriggeredByPhone.set(true)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
         }
     }
 
@@ -46,17 +58,10 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
         dndStateBus.setState(state)
     }
 
-    private fun isDndEnabled(phoneTriggered: Boolean): DndState {
-        isTriggeredByPhone.set(false)
-        if (!notificationManager.isNotificationPolicyAccessGranted) return DndState(
-            DndStateEnum.PERMISSION_NOT_GRANTED,
-            phoneTriggered
-        )
-        return if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) DndState(
-            DndStateEnum.DISABLED,
-            phoneTriggered
-        )
-        else DndState(DndStateEnum.ENABLED, phoneTriggered)
+    fun isDndEnabled(): DndStateEnum {
+        if (!notificationManager.isNotificationPolicyAccessGranted) return DndStateEnum.PERMISSION_NOT_GRANTED
+        return if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) DndStateEnum.DISABLED
+        else DndStateEnum.ENABLED
     }
 
 }

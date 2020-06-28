@@ -6,9 +6,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.data.UnlockStatRepository
+import com.crearo.halt.pollers.DndPoller
+import com.crearo.halt.rx.DndStateEnum
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -26,11 +29,21 @@ class MainActivity : AppCompatActivity() {
     lateinit var unlockStatRepository: UnlockStatRepository
     private val compositeDisposable = CompositeDisposable()
 
+    @Inject
+    lateinit var dndPoller: DndPoller
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         AppForegroundService.startService(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        findViewById<Button>(R.id.set_dnd).setOnClickListener {
+            if (dndPoller.isDndEnabled() == DndStateEnum.ENABLED) {
+                dndPoller.setNoDnd()
+            } else {
+                dndPoller.setDnd()
+            }
+        }
     }
 
     override fun onResume() {
@@ -44,14 +57,7 @@ class MainActivity : AppCompatActivity() {
         if (!notificationManager.isNotificationPolicyAccessGranted) {
             val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
             startActivity(intent)
-        } else {
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
     }
 
     override fun onStart() {
