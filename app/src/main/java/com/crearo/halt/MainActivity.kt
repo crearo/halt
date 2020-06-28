@@ -10,7 +10,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.data.UnlockStatRepository
-import com.crearo.halt.pollers.DndPoller
+import com.crearo.halt.rx.DndStateBus
 import com.crearo.halt.rx.DndStateEnum
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -30,7 +30,10 @@ class MainActivity : AppCompatActivity() {
     private val compositeDisposable = CompositeDisposable()
 
     @Inject
-    lateinit var dndPoller: DndPoller
+    lateinit var dndRepository: DndRepository
+
+    @Inject
+    lateinit var dndStateBus: DndStateBus
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +41,10 @@ class MainActivity : AppCompatActivity() {
         AppForegroundService.startService(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         findViewById<Button>(R.id.set_dnd).setOnClickListener {
-            if (dndPoller.isDndEnabled() == DndStateEnum.ENABLED) {
-                dndPoller.setNoDnd()
+            if (dndRepository.isDndEnabled() == DndStateEnum.ENABLED) {
+                dndRepository.setNoDnd()
             } else {
-                dndPoller.setDnd()
+                dndRepository.setDnd()
             }
         }
     }
@@ -66,6 +69,10 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { list ->
                 findViewById<TextView>(R.id.textview).text = "total ${list.size}"
+            })
+        compositeDisposable.add(
+            dndStateBus.getState().observeOn(AndroidSchedulers.mainThread()).subscribe {
+                findViewById<TextView>(R.id.textview).text = "total $it"
             })
     }
 
