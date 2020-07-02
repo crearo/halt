@@ -1,8 +1,9 @@
-package com.crearo.halt.pollers
+package com.crearo.halt.usecase
 
 import android.content.Context
 import com.crearo.halt.data.DndRepository
 import com.crearo.halt.data.UnlockStatRepository
+import com.crearo.halt.pollers.Poller
 import com.crearo.halt.rx.DndStateBus
 import com.crearo.halt.rx.DndStateEnum
 import com.crearo.halt.rx.PhoneLockStateBus
@@ -14,7 +15,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * FIXME: Hate the name of this class
+ * FIXME: Hate the name of this class. Also hate that it is in a package called usecase. wtf.
+ * Also, it shouldn't extend Poller.
+ * It does however belong logically outside of pollers because its job is specific to my application.
+ * The pollers are doing a job at a level below this.
  **/
 @Singleton
 class DndSetter @Inject constructor(@ApplicationContext context: Context) :
@@ -34,11 +38,24 @@ class DndSetter @Inject constructor(@ApplicationContext context: Context) :
 
     override fun start() {
         compositeDisposable.add(
-            timeObservable.subscribe {
-                if (it.hour == 5 && it.minute == 0) {
-                    dndRepository.setDnd()
+            timeObservable
+                .subscribe {
+                    if (it.hour == 5 && it.minute == 0) {
+                        dndRepository.setDnd()
+                    }
+
+                    // todo move this out from here, this is shite. it should listen to the first
+                    //  unlock event and then set an event for itself to listen to in the future
+                    unlockStatRepository.getFirstUnlock(LocalDate.now())
+                        .subscribe { unlockStat, _ ->
+                            if (unlockStat != null
+                                && Duration.between(unlockStat.unlockTime, Instant.now())
+                                    .toMinutes() == 60L
+                            ) {
+                                dndRepository.setNoDnd()
+                            }
+                        }
                 }
-            }
         )
 
         // this sets DND back to true if it changes when it should be maintained. For example when
@@ -50,23 +67,6 @@ class DndSetter @Inject constructor(@ApplicationContext context: Context) :
                     dndRepository.setDnd()
                 }
             }
-        )
-
-        // sets DND off after an hour of using it. FIXME: this should happen not like this. lol too tired to explain.
-        compositeDisposable.add(
-            phoneLockStateBus
-                .getState()
-                .subscribe {
-                    unlockStatRepository.getFirstUnlock(LocalDate.now())
-                        .subscribe { unlockStat, _ ->
-                            if (unlockStat != null
-                                && Duration.between(unlockStat.unlockTime, Instant.now())
-                                    .toMinutes() >= 60L
-                            ) {
-                                dndRepository.setNoDnd()
-                            }
-                        }
-                }
         )
     }
 

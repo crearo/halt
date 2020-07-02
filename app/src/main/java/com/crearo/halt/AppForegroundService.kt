@@ -6,7 +6,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.content.ContextCompat
 import com.crearo.halt.pollers.DndPoller
-import com.crearo.halt.pollers.DndSetter
+import com.crearo.halt.usecase.DndSetter
 import com.crearo.halt.pollers.PhoneLockStatePoller
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
