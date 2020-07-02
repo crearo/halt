@@ -6,7 +6,7 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.content.ContextCompat
 import com.crearo.halt.pollers.DndPoller
-import com.crearo.halt.usecase.DndSetter
+import com.crearo.halt.usecase.FocusModeSetter
 import com.crearo.halt.pollers.PhoneLockStatePoller
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -21,7 +21,7 @@ class AppForegroundService : Service() {
     lateinit var phoneLockStatePoller: PhoneLockStatePoller
 
     @Inject
-    lateinit var dndSetter: DndSetter
+    lateinit var focusModeSetter: FocusModeSetter
 
     @Inject
     lateinit var dndStatePoller: DndPoller
@@ -61,14 +61,14 @@ class AppForegroundService : Service() {
         super.onCreate()
         phoneLockStatePoller.start()
         dndStatePoller.start()
-        dndSetter.start()
+        focusModeSetter.start()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         phoneLockStatePoller.stop()
         dndStatePoller.stop()
-        dndSetter.stop()
+        focusModeSetter.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {

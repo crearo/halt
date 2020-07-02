@@ -15,13 +15,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * FIXME: Hate the name of this class. Also hate that it is in a package called usecase. wtf.
+ * FIXME: Hate that it is in a package called usecase. wtf.
  * Also, it shouldn't extend Poller.
  * It does however belong logically outside of pollers because its job is specific to my application.
  * The pollers are doing a job at a level below this.
  **/
 @Singleton
-class DndSetter @Inject constructor(@ApplicationContext context: Context) :
+class FocusModeSetter @Inject constructor(@ApplicationContext context: Context) :
     Poller(context) {
 
     @Inject
