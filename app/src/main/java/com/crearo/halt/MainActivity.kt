@@ -69,11 +69,11 @@ class MainActivity : AppCompatActivity() {
         compositeDisposable.add(unlockStatRepository.getUnlockStats()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { list ->
-                findViewById<TextView>(R.id.textview).text = "total ${list.size}"
+                findViewById<TextView>(R.id.tv_debug).text = "total ${list.size}"
             })
         compositeDisposable.add(
             dndStateBus.getState().observeOn(AndroidSchedulers.mainThread()).subscribe {
-                findViewById<TextView>(R.id.textview).text = "total $it"
+                findViewById<TextView>(R.id.tv_debug).text = "total $it"
             })
     }
 
