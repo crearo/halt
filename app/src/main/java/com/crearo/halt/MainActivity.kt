@@ -6,11 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.widget.Button
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.data.DndRepository
 import com.crearo.halt.data.UnlockStatRepository
+import com.crearo.halt.databinding.ActivityMainBinding
 import com.crearo.halt.rx.DndStateBus
 import com.crearo.halt.rx.DndStateEnum
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,12 +35,16 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var dndStateBus: DndStateBus
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         AppForegroundService.startService(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        findViewById<Button>(R.id.set_dnd).setOnClickListener {
+        binding.btnDnd.setOnClickListener {
             if (dndRepository.isDndEnabled() == DndStateEnum.ENABLED) {
                 dndRepository.setNoDnd()
             } else {
@@ -69,11 +72,11 @@ class MainActivity : AppCompatActivity() {
         compositeDisposable.add(unlockStatRepository.getUnlockStats()
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { list ->
-                findViewById<TextView>(R.id.tv_debug).text = "total ${list.size}"
+                binding.tvDebug.text = "total ${list.size}"
             })
         compositeDisposable.add(
             dndStateBus.getState().observeOn(AndroidSchedulers.mainThread()).subscribe {
-                findViewById<TextView>(R.id.tv_debug).text = "total $it"
+                binding.tvDebug.text = "total $it"
             })
     }
 
