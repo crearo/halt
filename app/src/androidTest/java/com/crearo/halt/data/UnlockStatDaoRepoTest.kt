@@ -132,6 +132,7 @@ class UnlockStatDaoRepoTest {
      * Case 3: in between an unlock and lock, and before another unlock
      * Case 4: before an unlock, and in between an unlock and lock
      * Case 5: before and unlock, and after a lock
+     * Case 6: after last unlock, and some time after that
      */
 
     @Test
@@ -141,7 +142,7 @@ class UnlockStatDaoRepoTest {
 
     @Test
     fun testTotalTimeUsed_beforeFirstUnlock_and_afterLastUnlock() {
-        testTotalTimeUsed(0, 45, 24)
+        testTotalTimeUsed(0, 45, 19)
     }
 
     @Test
@@ -159,6 +160,16 @@ class UnlockStatDaoRepoTest {
         testTotalTimeUsed(15, 35, 12)
     }
 
+    @Test
+    fun testTotalTimeUsed_afterLastUnlock_and_aBitAfter() {
+        testTotalTimeUsed(80, 120, 0)
+    }
+
+    @Test
+    fun testTotalTimeUsed_beforeLastUnlock_and_afterLastUnlock() {
+        testTotalTimeUsed(35, 45, 0)
+    }
+
     private fun testTotalTimeUsed(startTime: Long, endTime: Long, expectedTime: Long) {
         insertTestData()
         repository.getTotalTimeUsed(ofEpochSecond(startTime), ofEpochSecond(endTime))
@@ -166,6 +177,8 @@ class UnlockStatDaoRepoTest {
             .await()
             .assertValue(Duration.ofSeconds(expectedTime))
     }
+
+    /*TODO: Add tests for getTotalTimeUsedWithOngoingSession()*/
 
     /*
     * First unlock of today:

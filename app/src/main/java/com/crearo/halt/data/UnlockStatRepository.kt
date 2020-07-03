@@ -84,31 +84,53 @@ class UnlockStatRepository @Inject constructor(private val unlockStatDao: Unlock
     }
 
     /**
-     * @return total time the phone is used between the given parameters. This accounts for a
-     * currently ongoing unlock session
+     * @return total time the phone is used between the given parameters.
      **/
-    fun getTotalTimeUsed(startTimeUtc: Instant, endTimeUtc: Instant): Single<Duration> {
-        if (startTimeUtc.isAfter(endTimeUtc)) throw IllegalArgumentException("startTime is after endTime")
-        val completedUsageCycles = unlockStatDao
-            .getUnlockStats(startTimeUtc, endTimeUtc)
+    fun getTotalTimeUsed(
+        startInstant: Instant,
+        endInstant: Instant
+    ): Single<Duration> {
+        if (startInstant.isAfter(endInstant)) throw IllegalArgumentException("startTime is after endTime")
+        return unlockStatDao
+            .getUnlockStats(startInstant, endInstant)
             .flattenAsFlowable { it }
             .map {
                 Duration.between(
-                    max(startTimeUtc, it.unlockTime), min(endTimeUtc, it.lockTime!!)
+                    max(startInstant, it.unlockTime), min(endInstant, it.lockTime!!)
                 )
             }
             .reduce { val1: Duration, val2: Duration -> val1.plus(val2) }
             .defaultIfEmpty(Duration.ZERO)
             .toSingle()
+    }
 
+    /**
+     * You would typically want this when querying for total time used until now(), where the phone
+     * is also unlocked
+     * @param startInstant note, an instant is always in UTC
+     * @return total time the phone is used between the given parameters. This accounts for a
+     * currently ongoing unlock session
+     **/
+    fun getTotalTimeUsedWithOngoingSession(
+        startInstant: Instant,
+        endInstant: Instant
+    ): Single<Duration> {
+        if (startInstant.isAfter(endInstant)) throw IllegalArgumentException("startTime is after endTime")
         val ongoingUsage = unlockStatDao
             .getLastUnlock()
-            .filter { !it.isFilled() && it.unlockTime.isBefore(endTimeUtc) }
-            .map { Duration.between(it.unlockTime, endTimeUtc) }
+            .filter {
+                !it.isFilled()
+                        && it.unlockTime.isBefore(endInstant)
+                        && it.unlockTime.isAfter(startInstant)
+            }
+            .map { Duration.between(it.unlockTime, endInstant) }
             .defaultIfEmpty(Duration.ZERO)
             .toSingle()
 
-        return Single.zip(completedUsageCycles, ongoingUsage, BiFunction { t1, t2 -> t1.plus(t2) })
+        return Single.zip(
+            getTotalTimeUsed(startInstant, endInstant),
+            ongoingUsage,
+            BiFunction { t1, t2 -> t1.plus(t2) })
     }
 
     /**
