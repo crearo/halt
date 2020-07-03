@@ -12,9 +12,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
-import java.time.Instant
+import io.reactivex.subjects.PublishSubject
 import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -26,6 +27,10 @@ class UnlockStatFragment : Fragment() {
     private val compositeDisposable = CompositeDisposable()
     private var _binding: FragmentUnlockStatBinding? = null
     private val binding get() = _binding!!
+    private var startLocalDateTimeInUtc =
+        LocalDate.now(ZoneId.systemDefault()).atStartOfDay(ZoneId.systemDefault())
+    private val endLocalDateTime get() = startLocalDateTimeInUtc.plusDays(1)
+    private val localDateSubject = PublishSubject.create<ZonedDateTime>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,10 +38,31 @@ class UnlockStatFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentUnlockStatBinding.inflate(layoutInflater, container, false)
+
+        binding.btnMinusDay.setOnClickListener {
+            startLocalDateTimeInUtc = startLocalDateTimeInUtc.minusDays(1)
+            localDateSubject.onNext(startLocalDateTimeInUtc)
+        }
+        binding.btnPlusDay.setOnClickListener {
+            startLocalDateTimeInUtc = startLocalDateTimeInUtc.plusDays(1)
+            localDateSubject.onNext(startLocalDateTimeInUtc)
+        }
+
+        compositeDisposable.add(localDateSubject.subscribe {
+            binding.tvDay.text = startLocalDateTimeInUtc.toString()
+            setUsageStatsTextViews()
+        })
+
+        localDateSubject.onNext(startLocalDateTimeInUtc)
+
+        return binding.root
+    }
+
+    private fun setUsageStatsTextViews() {
         compositeDisposable.add(repository
             .getTotalTimeUsed(
-                LocalDate.now(ZoneOffset.UTC).atStartOfDay().toInstant(ZoneOffset.UTC),
-                Instant.now()
+                startLocalDateTimeInUtc.toInstant(),
+                endLocalDateTime.toInstant()
             )
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -48,14 +74,16 @@ class UnlockStatFragment : Fragment() {
         )
         compositeDisposable.add(
             repository
-                .getFirstUnlock(LocalDate.now())
+                .getFirstUnlock(startLocalDateTimeInUtc.toLocalDate()/*fixme: now this is wrong. I should change the underlying call to be sure exactly what date I am looking for*/)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess { binding.tvFirstUnlock.text = it.unlockTime.toString() }
+                .doOnSuccess {
+                    binding.tvFirstUnlock.text =
+                        it.unlockTime.atZone(ZoneId.systemDefault()).toString()
+                }
                 .doOnError { binding.tvFirstUnlock.text = "Failed to get first time used" }
                 .subscribe { t1, t2 -> }
         )
-        return binding.root
     }
 
     override fun onDestroyView() {
