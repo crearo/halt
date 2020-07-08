@@ -25,10 +25,10 @@ class DndManager @Inject constructor(@ApplicationContext context: Context) {
         }
     }
 
-    fun isDndEnabled(): DndStateEnum {
-        if (!hasPermissions()) return DndStateEnum.PERMISSION_NOT_GRANTED
-        return if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) DndStateEnum.DISABLED
-        else DndStateEnum.ENABLED
+    fun isDndEnabled(): DndState {
+        if (!hasPermissions()) return DndState.PERMISSION_NOT_GRANTED
+        return if (notificationManager.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) DndState.DISABLED
+        else DndState.ENABLED
     }
 
     fun hasPermissions(): Boolean {
@@ -37,9 +37,7 @@ class DndManager @Inject constructor(@ApplicationContext context: Context) {
 
 }
 
-data class DndState(val dndStateEnum: DndStateEnum)
-
-enum class DndStateEnum {
+enum class DndState {
     PERMISSION_NOT_GRANTED,
     ENABLED,
     DISABLED

@@ -3,7 +3,6 @@ package com.crearo.halt.pollers
 import android.content.Context
 import com.crearo.halt.manager.DndManager
 import com.crearo.halt.manager.DndState
-import com.crearo.halt.manager.DndStateEnum
 import com.crearo.halt.manager.FocusModeManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
@@ -27,7 +26,7 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
         compositeDisposable.add(tickerObservable
             .map { dndManager.isDndEnabled() }
             .distinctUntilChanged()
-            .doOnNext { state -> onDndStateChanged(DndState(state)) }
+            .doOnNext { state -> onDndStateChanged(state) }
             .subscribe()
         )
     }
@@ -37,7 +36,7 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
 
         // this sets DND back to true if it changes when it should be maintained. For example when
         // the user tries to change it from UI
-        if (focusModeManager.isFocusMode() && dndManager.isDndEnabled() == DndStateEnum.DISABLED) {
+        if (focusModeManager.isFocusMode() && dndManager.isDndEnabled() == DndState.DISABLED) {
             dndManager.setDnd()
         }
     }
