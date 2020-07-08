@@ -1,4 +1,4 @@
-package com.crearo.halt
+package com.crearo.halt.ui
 
 import android.app.NotificationManager
 import android.content.Context
@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
+import com.crearo.halt.AppForegroundService
 import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.databinding.ActivityMainBinding
 import com.crearo.halt.manager.FocusModeManager
@@ -51,7 +52,9 @@ class MainActivity : AppCompatActivity() {
         if (!Settings.canDrawOverlays(this)) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
             intent.data = Uri.parse("package:$packageName")
-            startActivityForResult(intent, ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE)
+            startActivityForResult(intent,
+                ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE
+            )
         }
 
         if (!notificationManager.isNotificationPolicyAccessGranted) {

@@ -6,16 +6,15 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.content.ContextCompat
 import com.crearo.halt.pollers.DndPoller
-import com.crearo.halt.usecase.FocusModeSetter
 import com.crearo.halt.pollers.PhoneLockStatePoller
+import com.crearo.halt.ui.MainActivity
+import com.crearo.halt.usecase.FocusModeSetter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class AppForegroundService : Service() {
-
-    private val CHANNEL_ID = "AppForegroundService"
 
     @Inject
     lateinit var phoneLockStatePoller: PhoneLockStatePoller
@@ -27,6 +26,8 @@ class AppForegroundService : Service() {
     lateinit var dndStatePoller: DndPoller
 
     companion object {
+        private const val CHANNEL_ID = "AppForegroundService"
+
         fun startService(context: Context) {
             val intent = Intent(context, AppForegroundService::class.java)
             ContextCompat.startForegroundService(context, intent)
