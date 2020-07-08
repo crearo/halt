@@ -8,6 +8,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * TODO: Fix name because this isn't just the data layer, but is also performing the task of setting DND
+ * */
 @Singleton
 class DndRepository @Inject constructor(@ApplicationContext context: Context) {
 
