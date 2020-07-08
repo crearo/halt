@@ -197,3 +197,16 @@ If I set state from code, then I know I did that from code. But, I will also hav
 info to DndPoller.
 Okay, let's just list out what DndPoller should do: track Dnd state and emit whenever there is a
 change. This emitted event should also contain if the change was done by the user or by our code.
+
+#### Progress update: 09.07.20
+
+Argh I am really stuck at understanding what the architecture should be like.
+
+View        <-> Activity
+ViewModel   <-> UseCase
+Model       <-> Repository and lower
+
+But now where do classes that do specific work go? For example setting phone's DND.
+They're kinda like utility classes but not really. Argh.
+Alright, I'm calling them Managers. Fuck it. Manager. Ah I dislike that word for this. But it does
+fit the most. Worker sounds like something to with threads.

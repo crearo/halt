@@ -7,11 +7,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
-import com.crearo.halt.data.DndRepository
 import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.databinding.ActivityMainBinding
-import com.crearo.halt.rx.DndStateBus
-import com.crearo.halt.rx.DndStateEnum
+import com.crearo.halt.manager.FocusModeManager
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -21,7 +19,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private val ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 1
+    companion object {
+        private const val ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE = 1
+    }
 
     private lateinit var notificationManager: NotificationManager
 
@@ -30,10 +30,7 @@ class MainActivity : AppCompatActivity() {
     private val compositeDisposable = CompositeDisposable()
 
     @Inject
-    lateinit var dndRepository: DndRepository
-
-    @Inject
-    lateinit var dndStateBus: DndStateBus
+    lateinit var focusModeManager: FocusModeManager
 
     private lateinit var binding: ActivityMainBinding
 
@@ -45,11 +42,7 @@ class MainActivity : AppCompatActivity() {
         AppForegroundService.startService(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         binding.btnDnd.setOnClickListener {
-            if (dndRepository.isDndEnabled() == DndStateEnum.ENABLED) {
-                dndRepository.setNoDnd()
-            } else {
-                dndRepository.setDnd()
-            }
+            focusModeManager.setFocusMode(!focusModeManager.isFocusMode())
         }
     }
 
@@ -73,10 +66,6 @@ class MainActivity : AppCompatActivity() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { list ->
                 binding.tvDebug.text = "total ${list.size}"
-            })
-        compositeDisposable.add(
-            dndStateBus.getState().observeOn(AndroidSchedulers.mainThread()).subscribe {
-                binding.tvDebug.text = "total $it"
             })
     }
 

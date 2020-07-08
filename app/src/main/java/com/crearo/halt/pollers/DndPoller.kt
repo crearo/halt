@@ -1,43 +1,46 @@
 package com.crearo.halt.pollers
 
 import android.content.Context
-import com.crearo.halt.data.DndRepository
-import com.crearo.halt.rx.DndState
-import com.crearo.halt.rx.DndStateBus
+import com.crearo.halt.manager.DndManager
+import com.crearo.halt.manager.DndState
+import com.crearo.halt.manager.DndStateEnum
+import com.crearo.halt.manager.FocusModeManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Tracks and broadcasts the phone's DND state. The broadcast event contains whether it was
- * triggered by the phone or the user.
+ * Tracks the phone's DND state. Sets it back to DND if we are in Focus Mode.
  **/
 @Singleton
 class DndPoller @Inject constructor(@ApplicationContext context: Context) :
     Poller(context) {
 
     @Inject
-    lateinit var dndStateBus: DndStateBus
+    lateinit var dndManager: DndManager
 
     @Inject
-    lateinit var dndRepository: DndRepository
+    lateinit var focusModeManager: FocusModeManager
 
     override fun start() {
         compositeDisposable.add(tickerObservable
-            .map { dndRepository.isDndEnabled() }
+            .map { dndManager.isDndEnabled() }
             .distinctUntilChanged()
-            .doOnNext { state ->
-                val wasTriggeredByPhone = dndRepository.isTriggeredByPhone.getAndSet(false)
-                onDndStateChanged(DndState(state, wasTriggeredByPhone))
-            }
+            .doOnNext { state -> onDndStateChanged(DndState(state)) }
             .subscribe()
         )
     }
 
     private fun onDndStateChanged(state: DndState) {
         Timber.d("DND State: $state")
-        dndStateBus.setState(state)
+
+        // this sets DND back to true if it changes when it should be maintained. For example when
+        // the user tries to change it from UI
+        if (focusModeManager.isFocusMode() && dndManager.isDndEnabled() == DndStateEnum.DISABLED) {
+            dndManager.setDnd()
+        }
     }
 
 }
+
