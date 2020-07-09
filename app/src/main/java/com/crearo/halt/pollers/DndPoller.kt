@@ -26,7 +26,7 @@ class DndPoller @Inject constructor(@ApplicationContext context: Context) :
         compositeDisposable.add(tickerObservable
             .map { dndManager.isDndEnabled() }
             .distinctUntilChanged()
-            .doOnNext { state -> onDndStateChanged(state) }
+            .doOnNext { onDndStateChanged(it) }
             .subscribe()
         )
     }

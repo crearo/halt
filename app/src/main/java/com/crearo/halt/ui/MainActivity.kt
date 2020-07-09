@@ -11,11 +11,13 @@ import com.crearo.halt.AppForegroundService
 import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.databinding.ActivityMainBinding
 import com.crearo.halt.manager.FocusModeManager
+import com.crearo.halt.pollers.AppLaunchPoller
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import timber.log.Timber
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -52,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         if (!Settings.canDrawOverlays(this)) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
             intent.data = Uri.parse("package:$packageName")
-            startActivityForResult(intent,
+            startActivityForResult(
+                intent,
                 ACTION_MANAGE_OVERLAY_PERMISSION_REQUEST_CODE
             )
         }
@@ -60,6 +63,10 @@ class MainActivity : AppCompatActivity() {
         if (!notificationManager.isNotificationPolicyAccessGranted) {
             val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
             startActivity(intent)
+        }
+
+        if (!AppLaunchPoller.hasUsageStatsPermission(this)) {
+            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
     }
 

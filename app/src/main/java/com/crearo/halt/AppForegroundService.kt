@@ -5,13 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.content.ContextCompat
+import com.crearo.halt.pollers.AppLaunchPoller
 import com.crearo.halt.pollers.DndPoller
 import com.crearo.halt.pollers.PhoneLockStatePoller
 import com.crearo.halt.ui.MainActivity
 import com.crearo.halt.usecase.FocusModeSetter
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class AppForegroundService : Service() {
@@ -24,6 +24,9 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var dndStatePoller: DndPoller
+
+    @Inject
+    lateinit var appLaunchPoller: AppLaunchPoller
 
     companion object {
         private const val CHANNEL_ID = "AppForegroundService"
@@ -63,6 +66,7 @@ class AppForegroundService : Service() {
         phoneLockStatePoller.start()
         dndStatePoller.start()
         focusModeSetter.start()
+        appLaunchPoller.start()
     }
 
     override fun onDestroy() {
@@ -70,6 +74,7 @@ class AppForegroundService : Service() {
         phoneLockStatePoller.stop()
         dndStatePoller.stop()
         focusModeSetter.stop()
+        appLaunchPoller.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
