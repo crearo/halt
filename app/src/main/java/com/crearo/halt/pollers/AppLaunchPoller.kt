@@ -23,8 +23,8 @@ class AppLaunchPoller @Inject constructor(@ApplicationContext context: Context) 
         )
     }
 
-    private fun onAppLaunched(appName: String) {
-        Timber.d("App Launched: $appName")
+    private fun onAppLaunched(packageName: String) {
+        Timber.d("App Launched: $packageName")
     }
 
 }

@@ -18,7 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="set DND" />
+        android:text="Set Focus Mode" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_unlock_stat"

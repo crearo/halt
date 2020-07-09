@@ -12,13 +12,11 @@ import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.databinding.ActivityMainBinding
 import com.crearo.halt.manager.AppTasksManager
 import com.crearo.halt.manager.FocusModeManager
-import com.crearo.halt.pollers.AppLaunchPoller
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import timber.log.Timber
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -28,18 +26,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var notificationManager: NotificationManager
+    private val compositeDisposable = CompositeDisposable()
+    private lateinit var binding: ActivityMainBinding
 
     @Inject
     lateinit var unlockStatRepository: UnlockStatRepository
 
     @Inject
     lateinit var appTasksManager: AppTasksManager
-    private val compositeDisposable = CompositeDisposable()
 
     @Inject
     lateinit var focusModeManager: FocusModeManager
-
-    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
