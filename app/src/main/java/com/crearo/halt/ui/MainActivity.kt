@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.AppForegroundService
 import com.crearo.halt.data.UnlockStatRepository
 import com.crearo.halt.databinding.ActivityMainBinding
+import com.crearo.halt.manager.AppTasksManager
 import com.crearo.halt.manager.FocusModeManager
 import com.crearo.halt.pollers.AppLaunchPoller
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var unlockStatRepository: UnlockStatRepository
+
+    @Inject
+    lateinit var appTasksManager: AppTasksManager
     private val compositeDisposable = CompositeDisposable()
 
     @Inject
@@ -65,7 +69,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        if (!AppLaunchPoller.hasUsageStatsPermission(this)) {
+        if (!appTasksManager.hasUsageStatsPermission()) {
             startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
         }
     }
