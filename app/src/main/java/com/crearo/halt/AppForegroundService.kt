@@ -10,6 +10,7 @@ import com.crearo.halt.pollers.DndPoller
 import com.crearo.halt.pollers.PhoneLockStatePoller
 import com.crearo.halt.ui.MainActivity
 import com.crearo.halt.usecase.FocusModeSetter
+import com.crearo.halt.usecase.IntentShower
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -27,6 +28,9 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var appLaunchPoller: AppLaunchPoller
+
+    @Inject
+    lateinit var intentShower: IntentShower
 
     companion object {
         private const val CHANNEL_ID = "AppForegroundService"
@@ -67,6 +71,7 @@ class AppForegroundService : Service() {
         dndStatePoller.start()
         focusModeSetter.start()
         appLaunchPoller.start()
+        intentShower.start()
     }
 
     override fun onDestroy() {
@@ -75,6 +80,7 @@ class AppForegroundService : Service() {
         dndStatePoller.stop()
         focusModeSetter.stop()
         appLaunchPoller.stop()
+        intentShower.stop()
     }
 
     override fun onBind(intent: Intent?): IBinder? {

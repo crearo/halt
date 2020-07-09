@@ -14,6 +14,9 @@ class PhoneLockStateBus @Inject constructor() {
         subject.onNext(unlocked)
     }
 
+    /**
+     * @return unlocked state
+     **/
     fun getState(): Observable<Boolean> {
         return subject
     }
