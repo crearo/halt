@@ -12,6 +12,7 @@ import com.crearo.halt.ui.MainActivity
 import com.crearo.halt.usecase.FocusModeSetter
 import com.crearo.halt.usecase.IntentShower
 import dagger.hilt.android.AndroidEntryPoint
+import java.time.Instant
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -31,6 +32,9 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var intentShower: IntentShower
+
+    @Inject
+    lateinit var analytics: Analytics
 
     companion object {
         private const val CHANNEL_ID = "AppForegroundService"
@@ -72,6 +76,7 @@ class AppForegroundService : Service() {
         focusModeSetter.start()
         appLaunchPoller.start()
         intentShower.start()
+        analytics.sendStartForegroundService(Instant.now())
     }
 
     override fun onDestroy() {
@@ -81,6 +86,7 @@ class AppForegroundService : Service() {
         focusModeSetter.stop()
         appLaunchPoller.stop()
         intentShower.stop()
+        analytics.sendStopForegroundService(Instant.now())
     }
 
     override fun onBind(intent: Intent?): IBinder? {
