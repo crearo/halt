@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         binding.btnDnd.setOnClickListener {
             focusModeManager.setFocusMode(!focusModeManager.isFocusMode())
+            throw RuntimeException("Test Crash")
         }
     }
 
