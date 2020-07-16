@@ -2,12 +2,14 @@ package com.crearo.halt.ui
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.databinding.ActivityChooseIntentBinding
 import com.crearo.halt.manager.FocusModeManager
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -18,7 +20,6 @@ class ChooseIntentActivity : AppCompatActivity() {
     lateinit var focusModeManager: FocusModeManager
 
     private lateinit var binding: ActivityChooseIntentBinding
-    private var stayInSocialMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,18 +27,9 @@ class ChooseIntentActivity : AppCompatActivity() {
         setContentView(binding.root)
         title = ""
         binding.social.setOnClickListener {
-            stayInSocialMode = true
             focusModeManager.setFocusMode(false)
             finish()
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (!stayInSocialMode) {
-            focusModeManager.setFocusMode(true)
-        }
-        stayInSocialMode = false
     }
 
     override fun onAttachedToWindow() {
@@ -46,6 +38,14 @@ class ChooseIntentActivity : AppCompatActivity() {
         val lp = view.layoutParams as WindowManager.LayoutParams
         lp.gravity = Gravity.BOTTOM
         windowManager.updateViewLayout(view, lp)
+    }
+
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event?.action == MotionEvent.ACTION_DOWN && event.y < 0) {
+            Timber.d("Touched outside")
+            focusModeManager.setFocusMode(true)
+        }
+        return super.onTouchEvent(event)
     }
 
 }

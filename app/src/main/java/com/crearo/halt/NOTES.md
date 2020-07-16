@@ -210,3 +210,14 @@ But now where do classes that do specific work go? For example setting phone's D
 They're kinda like utility classes but not really. Argh.
 Alright, I'm calling them Managers. Fuck it. Manager. Ah I dislike that word for this. But it does
 fit the most. Worker sounds like something to with threads.
+
+#### Progress update: 16.07.20
+
+Had a great idea: there shouldn't be two buttons, but just one that opens from the bottom. Whenever
+you wanna be in social mode, that should be effort. But for everything else, it should be easy to
+go back to doing what you were gonna do normally. I know there's an extra step, but I think this
+will work a bit better than having to choose between Social And Focussed mode.
+Anywaaaaay. Also got the intent chooser activity to show up nicely which looks pretty great IMO.
+
+Also there has to be a difference between the phone setting focus mode and the user setting it.
+Just putting the thought out there.
