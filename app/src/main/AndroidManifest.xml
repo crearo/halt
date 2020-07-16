@@ -21,6 +21,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.ChooseIntentActivity"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.Transparent" />
 
         <service android:name=".AppForegroundService" />
