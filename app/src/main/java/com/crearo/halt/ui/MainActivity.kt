@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         compositeDisposable.clear()
+        finish()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
