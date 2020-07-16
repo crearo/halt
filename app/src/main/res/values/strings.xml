@@ -3,5 +3,6 @@
     <string name="notification_title">Usage Today</string>
     <string name="notification_message">This is how much you\'ve used your phone</string>
     <string name="ticker_text">Ticker Text</string>
+    <string name="social">Social</string>
 
 </resources>
