@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:paddingTop="50dp"
+    android:paddingBottom="50dp"
     tools:context=".ui.ChooseIntentActivity">
 
     <Button
