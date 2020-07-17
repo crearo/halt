@@ -221,3 +221,16 @@ Anywaaaaay. Also got the intent chooser activity to show up nicely which looks p
 
 Also there has to be a difference between the phone setting focus mode and the user setting it.
 Just putting the thought out there.
+
+Now the next step is going to be to make this bottom dialog open smartly:
+
+- when you've unlocked too many times in the last x minutes
+- when you've used your phone for more than x minutes in the last 30 minutes
+- when you've used social for more than x minutes in the last 3 hours
+- it should definitely not show up when I haven't used my phone in a while. Coooooool.
+
+Also, that thing gotta avoid letting me have muscle memory to just disable it. Need ideas there.
+This is also why I will have to differentiate when the phone enforces Focus Mode, and when the user
+requests it. Cuz I want myself to have no option in the first hour of the morning to even choose to
+use social media stuff, and so the dialog shouldn't even open then. But then afterwards it should.
+Hmm actually can I do it without that?

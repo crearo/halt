@@ -9,9 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.crearo.halt.databinding.ActivityChooseIntentBinding
 import com.crearo.halt.manager.FocusModeManager
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class ChooseIntentActivity : AppCompatActivity() {
@@ -42,7 +40,6 @@ class ChooseIntentActivity : AppCompatActivity() {
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event?.action == MotionEvent.ACTION_DOWN && event.y < 0) {
-            Timber.d("Touched outside")
             focusModeManager.setFocusMode(true)
         }
         return super.onTouchEvent(event)
