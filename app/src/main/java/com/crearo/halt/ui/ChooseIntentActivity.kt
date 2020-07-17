@@ -28,6 +28,9 @@ class ChooseIntentActivity : AppCompatActivity() {
             focusModeManager.setFocusMode(false)
             finish()
         }
+        // set focus mode as soon as this is opened. This way you really have to click on the social
+        // button to do anything social
+        focusModeManager.setFocusMode(true)
     }
 
     override fun onAttachedToWindow() {

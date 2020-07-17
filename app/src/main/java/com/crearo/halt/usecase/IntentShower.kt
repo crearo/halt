@@ -23,7 +23,7 @@ class IntentShower @Inject constructor(@ApplicationContext context: Context) :
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .skip(1) // skip the first because the app is already running
-                .filter { !it }
+                .filter { it }
                 .subscribe {
                     val intent = Intent(context, ChooseIntentActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
