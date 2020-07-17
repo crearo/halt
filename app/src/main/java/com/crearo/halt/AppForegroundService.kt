@@ -9,6 +9,7 @@ import com.crearo.halt.pollers.AppLaunchPoller
 import com.crearo.halt.pollers.DndPoller
 import com.crearo.halt.pollers.PhoneLockStatePoller
 import com.crearo.halt.ui.MainActivity
+import com.crearo.halt.usecase.AppLaunchBlocker
 import com.crearo.halt.usecase.FocusModeSetter
 import com.crearo.halt.usecase.IntentShower
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,6 +33,9 @@ class AppForegroundService : Service() {
 
     @Inject
     lateinit var intentShower: IntentShower
+
+    @Inject
+    lateinit var appLaunchBlocker: AppLaunchBlocker
 
     @Inject
     lateinit var analytics: Analytics
@@ -76,6 +80,7 @@ class AppForegroundService : Service() {
         focusModeSetter.start()
         appLaunchPoller.start()
         intentShower.start()
+        appLaunchBlocker.start()
         analytics.sendStartForegroundService(Instant.now())
     }
 
@@ -86,6 +91,7 @@ class AppForegroundService : Service() {
         focusModeSetter.stop()
         appLaunchPoller.stop()
         intentShower.stop()
+        appLaunchBlocker.stop()
         analytics.sendStopForegroundService(Instant.now())
     }
 
