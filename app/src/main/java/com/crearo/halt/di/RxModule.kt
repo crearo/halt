@@ -17,6 +17,16 @@ object RxModule {
 
     @Provides
     @Singleton
+    @Named("ticker_300ms")
+    fun provideTickerObservable300ms(): Observable<Long> {
+        return Observable.interval(300, TimeUnit.MILLISECONDS)
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .share()
+    }
+
+    @Provides
+    @Singleton
     @Named("ticker")
     fun provideTickerObservable(): Observable<Long> {
         return Observable.interval(1, TimeUnit.SECONDS)

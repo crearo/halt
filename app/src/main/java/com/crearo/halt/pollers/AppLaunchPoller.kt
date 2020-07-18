@@ -19,7 +19,7 @@ class AppLaunchPoller @Inject constructor(@ApplicationContext context: Context) 
     lateinit var appLaunchBus: AppLaunchBus
 
     override fun start() {
-        compositeDisposable.add(tickerObservable
+        compositeDisposable.add(ticker300msObservable
             .map { appTasksManager.getCurrentlyRunningAppName() }
             .distinctUntilChanged()
             .doOnNext { onAppLaunched(it) }

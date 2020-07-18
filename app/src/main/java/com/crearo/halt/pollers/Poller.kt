@@ -10,6 +10,10 @@ import javax.inject.Named
 abstract class Poller(val context: Context) {
 
     @Inject
+    @Named("ticker_300ms")
+    lateinit var ticker300msObservable: Observable<Long>
+
+    @Inject
     @Named("ticker")
     lateinit var tickerObservable: Observable<Long>
 
