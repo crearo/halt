@@ -1,13 +1,15 @@
 package com.crearo.halt.usecase
 
 import android.content.Context
+import android.content.Context.LAYOUT_INFLATER_SERVICE
 import android.content.Context.WINDOW_SERVICE
-import android.graphics.Color
+import android.content.Intent
 import android.graphics.PixelFormat
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import android.widget.ImageView
+import com.crearo.halt.R
 import com.crearo.halt.manager.FocusModeManager
 import com.crearo.halt.pollers.Poller
 import com.crearo.halt.rx.AppLaunchBus
@@ -29,6 +31,7 @@ class AppLaunchBlocker @Inject constructor(@ApplicationContext context: Context)
     lateinit var focusModeManager: FocusModeManager
 
     private val BLOCKED_APPS = listOf("com.instagram.android")
+    private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private val windowManager = context.getSystemService(WINDOW_SERVICE) as WindowManager
     private val blockView = getBlockingView()
 
@@ -39,14 +42,20 @@ class AppLaunchBlocker @Inject constructor(@ApplicationContext context: Context)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
                 if (focusModeManager.isFocusMode() && BLOCKED_APPS.contains(it)) {
-                    drawBlockViewOnWindow()
-                } else if (blockView.isShown) {
-                    windowManager.removeView(blockView)
+                    goToHomeActivity()
+                    addBlockViewToWindow()
                 }
             })
     }
 
-    private fun drawBlockViewOnWindow() {
+    private fun goToHomeActivity() {
+        val homeIntent = Intent(Intent.ACTION_MAIN)
+        homeIntent.addCategory(Intent.CATEGORY_HOME)
+        homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(homeIntent)
+    }
+
+    private fun addBlockViewToWindow() {
         Timber.d("Drawing blocking view")
 
         val params = WindowManager.LayoutParams(
@@ -63,10 +72,14 @@ class AppLaunchBlocker @Inject constructor(@ApplicationContext context: Context)
         windowManager.addView(blockView, params)
     }
 
+    private fun removeBlockViewFromWindow() {
+        windowManager.removeView(blockView)
+    }
+
     private fun getBlockingView(): View {
-        val blockView = ImageView(context)
+        val blockView = inflater.inflate(R.layout.fullscreen_block_view, null)
         blockView.id = View.generateViewId()
-        blockView.setBackgroundColor(Color.WHITE)
+        blockView.setOnClickListener { removeBlockViewFromWindow() }
         return blockView
     }
 
